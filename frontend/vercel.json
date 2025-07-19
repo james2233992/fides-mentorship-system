@@ -10,11 +10,9 @@
     }
   },
   "env": {
-    "NEXT_PUBLIC_API_URL": "@production_api_url",
-    "NEXT_PUBLIC_WS_URL": "@production_ws_url",
-    "NEXT_PUBLIC_APP_NAME": "FIDES Mentorship",
-    "NEXT_PUBLIC_SENTRY_DSN": "@sentry_dsn_frontend",
-    "NEXT_PUBLIC_GOOGLE_ANALYTICS_ID": "@google_analytics_id"
+    "NEXT_PUBLIC_API_URL": "https://fides-backend.railway.app",
+    "NEXT_PUBLIC_WS_URL": "wss://fides-backend.railway.app",
+    "NEXT_PUBLIC_APP_NAME": "FIDES Mentorship"
   },
   "headers": [
     {
@@ -51,7 +49,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://fides-api.railway.app/api/:path*"
+      "destination": "https://fides-backend.railway.app/api/:path*"
     }
   ]
 }

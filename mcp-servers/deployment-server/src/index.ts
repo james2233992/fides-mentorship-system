@@ -3,7 +3,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
-  ToolSchema
+  Tool
 } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 import dotenv from 'dotenv';
@@ -21,7 +21,7 @@ const railwayService = new RailwayDeploymentService(process.env.RAILWAY_TOKEN!);
 const githubService = new GitHubDeploymentService(process.env.GITHUB_TOKEN!);
 
 // Define tools
-const TOOLS: ToolSchema[] = [
+const TOOLS: Tool[] = [
   {
     name: 'deploy_frontend',
     description: 'Deploy frontend to Vercel',
@@ -161,15 +161,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 // Handle tool execution
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
+  const { name, arguments: args = {} } = request.params;
 
   try {
     switch (name) {
       case 'deploy_frontend': {
         console.log(chalk.blue('🚀 Deploying frontend to Vercel...'));
         const result = await vercelService.deploy({
-          environment: args.environment,
-          branch: args.branch || 'main'
+          environment: (args.environment as 'preview' | 'production') || 'preview',
+          branch: (args.branch as string) || 'main'
         });
         return {
           content: [
@@ -184,7 +184,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'deploy_backend': {
         console.log(chalk.green('🚂 Deploying backend to Railway...'));
         const result = await railwayService.deploy({
-          service: args.service || 'fides-api',
+          service: (args.service as string) || 'fides-api',
           runMigrations: args.runMigrations !== false
         });
         return {
@@ -201,12 +201,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         console.log(chalk.yellow('📊 Checking deployment status...'));
         const statuses = [];
         
-        if (args.platform === 'all' || args.platform === 'vercel') {
+        if ((args.platform as string) === 'all' || (args.platform as string) === 'vercel' || !args.platform) {
           const vercelStatus = await vercelService.getStatus();
           statuses.push(`Vercel:\n${JSON.stringify(vercelStatus, null, 2)}`);
         }
         
-        if (args.platform === 'all' || args.platform === 'railway') {
+        if ((args.platform as string) === 'all' || (args.platform as string) === 'railway' || !args.platform) {
           const railwayStatus = await railwayService.getStatus();
           statuses.push(`Railway:\n${JSON.stringify(railwayStatus, null, 2)}`);
         }
@@ -225,17 +225,17 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         console.log(chalk.red('⏪ Rolling back deployment...'));
         let result;
         
-        if (args.platform === 'vercel') {
-          result = await vercelService.rollback(args.deploymentId);
+        if ((args.platform as string) === 'vercel') {
+          result = await vercelService.rollback(args.deploymentId as string);
         } else {
-          result = await railwayService.rollback(args.deploymentId);
+          result = await railwayService.rollback(args.deploymentId as string);
         }
         
         return {
           content: [
             {
               type: 'text',
-              text: `Rollback completed!\n\nPlatform: ${args.platform}\nNew Active Deployment: ${result.activeDeployment}`
+              text: `Rollback completed!\n\nPlatform: ${args.platform as string}\nNew Active Deployment: ${result.activeDeployment}`
             }
           ]
         };
@@ -244,9 +244,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'create_github_release': {
         console.log(chalk.magenta('📦 Creating GitHub release...'));
         const result = await githubService.createRelease({
-          version: args.version,
-          description: args.description,
-          prerelease: args.prerelease || false
+          version: args.version as string,
+          description: args.description as string,
+          prerelease: (args.prerelease as boolean) || false
         });
         
         return {
@@ -264,12 +264,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const checks = [];
         
         // Run tests
-        if (args.includeTests) {
+        if (args.includeTests !== false) {
           checks.push('✅ Tests: All passing (mocked for demo)');
         }
         
         // Run security scans
-        if (args.includeSecurity) {
+        if (args.includeSecurity !== false) {
           checks.push('✅ Security: No vulnerabilities found');
         }
         

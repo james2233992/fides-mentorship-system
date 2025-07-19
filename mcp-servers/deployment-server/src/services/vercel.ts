@@ -107,7 +107,7 @@ export class VercelDeploymentService {
       );
 
       return {
-        activeDeployment: deploymentId
+        activeDeployment: deploymentId!
       };
     } catch (error) {
       console.error(chalk.red('Vercel rollback failed:'), error);

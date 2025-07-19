@@ -1,0 +1,27 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "npm ci && npx prisma generate"
+  },
+  "deploy": {
+    "startCommand": "npm run start:prod",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  },
+  "services": [
+    {
+      "name": "fides-api",
+      "envVars": {
+        "PORT": "3000",
+        "NODE_ENV": "production",
+        "DATABASE_URL": "${{Postgres.DATABASE_URL}}",
+        "REDIS_URL": "${{Redis.REDIS_URL}}",
+        "JWT_SECRET": "${{shared.JWT_SECRET}}",
+        "JWT_EXPIRES_IN": "7d",
+        "CORS_ORIGIN": "https://fides-frontend.vercel.app",
+        "FRONTEND_URL": "https://fides-frontend.vercel.app"
+      }
+    }
+  ]
+}
