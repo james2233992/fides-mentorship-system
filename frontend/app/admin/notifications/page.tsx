@@ -43,7 +43,7 @@ export default function NotificationsPage() {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/notifications', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`/notifications', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
@@ -72,7 +72,7 @@ export default function NotificationsPage() {
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/notifications/unread-count', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`/notifications/unread-count', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
@@ -89,7 +89,7 @@ export default function NotificationsPage() {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/notifications/${notificationId}/read`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${notificationId}/read`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -109,7 +109,7 @@ export default function NotificationsPage() {
 
   const markAllAsRead = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/notifications/mark-all-read', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`/notifications/mark-all-read', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -135,7 +135,7 @@ export default function NotificationsPage() {
 
   const deleteNotification = async (notificationId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/notifications/${notificationId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/${notificationId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

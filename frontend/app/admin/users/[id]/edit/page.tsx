@@ -48,7 +48,7 @@ export default function EditUserPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/api/users/${params.id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${params.id}`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
           },
@@ -90,7 +90,7 @@ export default function EditUserPage() {
   const onSubmit = async (data: UserFormData) => {
     setLoading(true)
     try {
-      const response = await fetch(`http://localhost:3001/api/users/${params.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${params.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

@@ -61,7 +61,7 @@ export default function MessagesPage() {
   useEffect(() => {
     if (!token) return
 
-    const socketInstance = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001', {
+    const socketInstance = io(process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL}`, {
       path: '/messages',
       auth: {
         token: token

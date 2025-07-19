@@ -52,7 +52,7 @@ export default function AdminSessionsPage() {
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/sessions', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`/sessions', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
@@ -83,7 +83,7 @@ export default function AdminSessionsPage() {
     if (!selectedSession) return
 
     try {
-      const response = await fetch(`http://localhost:3001/api/sessions/${selectedSession.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions/${selectedSession.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -117,7 +117,7 @@ export default function AdminSessionsPage() {
 
   const handleStatusChange = async (sessionId: string, newStatus: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/sessions/${sessionId}/status`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions/${sessionId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

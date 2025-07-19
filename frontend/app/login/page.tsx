@@ -25,7 +25,7 @@ export default function LoginPage() {
     setIsLoading(true)
     
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ export default function LoginPage() {
         localStorage.setItem('token', access_token)
         
         // Get user profile
-        const profileResponse = await fetch('http://localhost:3001/api/auth/profile', {
+        const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
           headers: {
             'Authorization': `Bearer ${access_token}`,
           },

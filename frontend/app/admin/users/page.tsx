@@ -46,7 +46,7 @@ export default function UsersManagement() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/users', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
@@ -70,7 +70,7 @@ export default function UsersManagement() {
     if (!confirm('¿Estás seguro de que deseas eliminar este usuario?')) return
 
     try {
-      const response = await fetch(`http://localhost:3001/api/users/${userId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${userId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

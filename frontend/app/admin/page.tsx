@@ -28,7 +28,7 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       // Fetch users stats
-      const usersResponse = await fetch('http://localhost:3001/api/users', {
+      const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
@@ -46,7 +46,7 @@ export default function AdminDashboard() {
       }
 
       // Fetch sessions stats
-      const sessionsResponse = await fetch('http://localhost:3001/api/sessions', {
+      const sessionsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
@@ -69,7 +69,7 @@ export default function AdminDashboard() {
       }
 
       // Fetch notifications stats
-      const notificationsResponse = await fetch('http://localhost:3001/api/notifications/unread-count', {
+      const notificationsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/unread-count`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },

@@ -49,7 +49,7 @@ export default function NewUserPage() {
   const onSubmit = async (data: UserFormData) => {
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:3001/api/users', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

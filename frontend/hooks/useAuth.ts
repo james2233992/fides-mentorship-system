@@ -15,7 +15,7 @@ export function useAuth() {
       }
 
       try {
-        const response = await fetch('http://localhost:3001/api/auth/profile', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
