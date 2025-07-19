@@ -21,6 +21,8 @@ RUN npm run build
 
 # Debug: List dist directory contents
 RUN ls -la dist/ || echo "dist directory not found"
+RUN ls -la dist/src/ || echo "dist/src directory not found"
+RUN find dist -name "*.js" || echo "No JS files found in dist"
 
 # Production stage
 FROM node:20-alpine
@@ -42,6 +44,8 @@ COPY --from=builder /app/dist ./dist
 
 # Debug: Verify dist contents in production
 RUN ls -la dist/ || echo "dist directory not found in production"
+RUN ls -la dist/src/ || echo "dist/src directory not found in production"
+RUN test -f dist/src/main.js && echo "main.js found!" || echo "main.js NOT found!"
 
 # Expose port
 EXPOSE 3000
