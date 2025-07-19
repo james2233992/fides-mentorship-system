@@ -43,7 +43,7 @@ export default function NotificationsPage() {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`/notifications', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
@@ -72,7 +72,7 @@ export default function NotificationsPage() {
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`/notifications/unread-count', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/unread-count`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
@@ -109,7 +109,7 @@ export default function NotificationsPage() {
 
   const markAllAsRead = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`/notifications/mark-all-read', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/mark-all-read`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

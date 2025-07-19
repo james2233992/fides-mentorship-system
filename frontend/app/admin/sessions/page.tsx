@@ -52,7 +52,7 @@ export default function AdminSessionsPage() {
 
   const fetchSessions = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`/sessions', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },

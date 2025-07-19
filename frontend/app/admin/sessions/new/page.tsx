@@ -59,7 +59,7 @@ export default function NewSessionPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`/users', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
@@ -82,7 +82,7 @@ export default function NewSessionPage() {
   const onSubmit = async (data: SessionFormData) => {
     setLoading(true)
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}`/sessions', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
