@@ -23,9 +23,23 @@ async function bootstrap() {
 
   // Enable CORS with specific configuration
   const isProduction = configService.get<string>('NODE_ENV') === 'production';
-  const corsOrigin = isProduction 
-    ? (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'https://fides-mentorship-system-t8ey.vercel.app')
-    : ['http://localhost:3000', 'http://localhost:3001'];
+  
+  // In production, accept multiple origins if CORS_ORIGIN contains comma-separated values
+  let corsOrigin;
+  if (isProduction) {
+    const corsEnv = process.env.CORS_ORIGIN || process.env.FRONTEND_URL;
+    if (corsEnv && corsEnv.includes(',')) {
+      // Multiple origins
+      corsOrigin = corsEnv.split(',').map(origin => origin.trim());
+    } else {
+      // Single origin or fallback
+      corsOrigin = corsEnv || 'https://fides-mentorship-system-t8ey.vercel.app';
+    }
+  } else {
+    corsOrigin = ['http://localhost:3000', 'http://localhost:3001'];
+  }
+  
+  console.log('CORS Configuration:', { corsOrigin });
   
   app.enableCors({
     origin: corsOrigin,

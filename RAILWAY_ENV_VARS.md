@@ -17,7 +17,13 @@ JWT_EXPIRES_IN=7d
 
 ### URLs
 ```
-FRONTEND_URL=https://fides-frontend.vercel.app
+# Opción 1: Un solo origen
+CORS_ORIGIN=https://fides-mentorship-system-t8ey.vercel.app
+
+# Opción 2: Múltiples orígenes (separados por comas)
+CORS_ORIGIN=https://fides-mentorship-system-t8ey.vercel.app,https://fides-frontend.vercel.app
+
+# URL del backend (se genera automáticamente en Railway)
 BACKEND_URL=https://tu-app.railway.app
 ```
 

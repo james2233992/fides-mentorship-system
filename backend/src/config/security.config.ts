@@ -1,9 +1,16 @@
 export default () => ({
   security: {
     cors: {
-      origin: process.env.NODE_ENV === 'production'
-        ? (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'https://fides-mentorship-system-t8ey.vercel.app')
-        : ['http://localhost:3000', 'http://localhost:3001'],
+      origin: (() => {
+        if (process.env.NODE_ENV === 'production') {
+          const corsEnv = process.env.CORS_ORIGIN || process.env.FRONTEND_URL;
+          if (corsEnv && corsEnv.includes(',')) {
+            return corsEnv.split(',').map(origin => origin.trim());
+          }
+          return corsEnv || 'https://fides-mentorship-system-t8ey.vercel.app';
+        }
+        return ['http://localhost:3000', 'http://localhost:3001'];
+      })(),
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
