@@ -23,13 +23,16 @@ async function bootstrap() {
 
   // Enable CORS with specific configuration
   const isProduction = configService.get<string>('NODE_ENV') === 'production';
+  const corsOrigin = isProduction 
+    ? (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'https://fides-mentorship-system-t8ey.vercel.app')
+    : ['http://localhost:3000', 'http://localhost:3001'];
+  
   app.enableCors({
-    origin: isProduction 
-      ? configService.get<string>('APP_URL') 
-      : ['http://localhost:3000', 'http://localhost:3001'],
+    origin: corsOrigin,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    maxAge: 86400, // 24 hours
   });
 
   // Global validation pipe with enhanced security

@@ -2,11 +2,12 @@ export default () => ({
   security: {
     cors: {
       origin: process.env.NODE_ENV === 'production'
-        ? process.env.APP_URL
+        ? (process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'https://fides-mentorship-system-t8ey.vercel.app')
         : ['http://localhost:3000', 'http://localhost:3001'],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+      maxAge: 86400, // 24 hours
     },
     rateLimit: {
       global: {
