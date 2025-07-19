@@ -7,6 +7,11 @@ const getApiUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL;
   }
   
+  // For Vercel deployments, always use the Railway backend
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    return 'https://fides-mentorship-system-production.up.railway.app/api';
+  }
+  
   // Fallback to production URL
   if (process.env.NODE_ENV === 'production') {
     return 'https://fides-mentorship-system-production.up.railway.app/api';
@@ -20,6 +25,11 @@ const getWsUrl = () => {
   // First try environment variable
   if (process.env.NEXT_PUBLIC_WS_URL) {
     return process.env.NEXT_PUBLIC_WS_URL;
+  }
+  
+  // For Vercel deployments, always use the Railway backend
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    return 'wss://fides-mentorship-system-production.up.railway.app';
   }
   
   // Fallback to production URL
