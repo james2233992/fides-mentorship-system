@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -18,7 +18,7 @@ import { useToast } from '@/components/hooks/use-toast'
 import { ArrowLeft, Mail, Lock, User, Briefcase, GraduationCap } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-export default function RegisterPage() {
+function RegisterContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const dispatch = useAppDispatch()
@@ -298,5 +298,13 @@ export default function RegisterPage() {
         </div>
       </footer>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <RegisterContent />
+    </Suspense>
   )
 }
