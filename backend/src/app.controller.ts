@@ -16,6 +16,11 @@ export class AppController {
       status: 'ok',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
+      environment: process.env.NODE_ENV,
+      cors: {
+        origin: process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'not-set',
+        configured: process.env.NODE_ENV === 'production' ? 'production' : 'development'
+      }
     };
   }
 }
