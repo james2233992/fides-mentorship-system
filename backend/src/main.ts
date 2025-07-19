@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
+import { LegacyRoutesMiddleware } from './middleware/legacy-routes.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -62,6 +63,9 @@ async function bootstrap() {
     }),
   );
 
+  // Apply legacy routes middleware BEFORE setting global prefix
+  app.use(new LegacyRoutesMiddleware().use);
+  
   // Global prefix
   app.setGlobalPrefix('api');
 
