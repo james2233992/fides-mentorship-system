@@ -1,0 +1,219 @@
+# Production Monitoring Alerts Configuration
+# This file defines alert rules for various monitoring services
+
+# Uptime Monitoring (Better Uptime / Pingdom)
+uptime_monitors:
+  - name: "FIDES Frontend"
+    url: "https://fides.vercel.app"
+    check_frequency: 60 # seconds
+    locations:
+      - "us-east"
+      - "eu-west"
+    alert_contacts:
+      - email: "ops@fides.edu"
+      - slack: "#alerts"
+    ssl_check: true
+    ssl_expiry_alert: 30 # days before expiry
+
+  - name: "FIDES API Health"
+    url: "https://fides-api.railway.app/api/health"
+    check_frequency: 30
+    expected_status: 200
+    timeout: 10
+    alert_after_failures: 2
+
+  - name: "FIDES WebSocket"
+    url: "wss://fides-api.railway.app"
+    type: "websocket"
+    check_frequency: 120
+
+# Application Performance Monitoring
+performance_alerts:
+  # API Response Time
+  - name: "High API Response Time"
+    metric: "api.response_time"
+    condition: "avg"
+    threshold: 1000 # ms
+    window: "5m"
+    severity: "warning"
+    
+  - name: "Critical API Response Time"
+    metric: "api.response_time"
+    condition: "avg"
+    threshold: 3000 # ms
+    window: "5m"
+    severity: "critical"
+
+  # Database Performance
+  - name: "Slow Database Queries"
+    metric: "db.query_time"
+    condition: "p95"
+    threshold: 500 # ms
+    window: "10m"
+    
+  # Memory Usage
+  - name: "High Memory Usage"
+    metric: "process.memory.rss"
+    condition: "avg"
+    threshold: 512 # MB
+    window: "15m"
+
+# Error Rate Monitoring
+error_alerts:
+  - name: "High Error Rate"
+    metric: "error.rate"
+    condition: "count"
+    threshold: 10
+    window: "5m"
+    filters:
+      - status_code: "5xx"
+    
+  - name: "Authentication Failures"
+    metric: "auth.failures"
+    condition: "count"
+    threshold: 20
+    window: "10m"
+    
+  - name: "Payment Failures"
+    metric: "payment.failures"
+    condition: "rate"
+    threshold: 0.05 # 5% failure rate
+    window: "30m"
+
+# Infrastructure Monitoring
+infrastructure_alerts:
+  # Railway Service Health
+  - name: "Backend Service Down"
+    service: "fides-api"
+    check: "health"
+    alert_after: 2 # consecutive failures
+    
+  - name: "Database Connection Pool Exhausted"
+    metric: "db.connections.active"
+    condition: "avg"
+    threshold: 90 # percentage
+    window: "5m"
+    
+  - name: "Redis Memory Usage"
+    metric: "redis.memory.used"
+    condition: "avg"
+    threshold: 100 # MB
+    window: "30m"
+    
+  - name: "Disk Space Low"
+    metric: "disk.usage"
+    condition: "avg"
+    threshold: 85 # percentage
+    window: "1h"
+
+# Queue Monitoring
+queue_alerts:
+  - name: "Queue Backlog"
+    queue: "notification"
+    metric: "queue.size"
+    threshold: 100
+    window: "10m"
+    
+  - name: "Failed Jobs"
+    queue: "*"
+    metric: "queue.failed"
+    threshold: 5
+    window: "15m"
+    
+  - name: "Queue Processing Time"
+    queue: "*"
+    metric: "queue.processing_time"
+    condition: "p95"
+    threshold: 30000 # ms
+    window: "30m"
+
+# Security Monitoring
+security_alerts:
+  - name: "Brute Force Attempts"
+    metric: "auth.failed_attempts"
+    condition: "count"
+    threshold: 10
+    window: "5m"
+    group_by: "ip_address"
+    
+  - name: "Suspicious Activity"
+    patterns:
+      - "SQL injection attempt"
+      - "XSS attempt"
+      - "Path traversal"
+    action: "immediate"
+    
+  - name: "Rate Limit Violations"
+    metric: "rate_limit.violations"
+    threshold: 50
+    window: "10m"
+
+# Business Metrics
+business_alerts:
+  - name: "Low User Engagement"
+    metric: "sessions.created"
+    condition: "count"
+    threshold: 5 # minimum sessions per hour
+    window: "1h"
+    schedule: "business_hours"
+    
+  - name: "High Session Cancellation Rate"
+    metric: "sessions.cancelled_rate"
+    condition: "rate"
+    threshold: 0.2 # 20%
+    window: "24h"
+
+# Alert Channels Configuration
+alert_channels:
+  email:
+    default:
+      - "ops@fides.edu"
+      - "dev@fides.edu"
+    critical:
+      - "cto@fides.edu"
+      - "oncall@fides.edu"
+      
+  slack:
+    default: "#alerts"
+    critical: "#critical-alerts"
+    security: "#security-alerts"
+    
+  pagerduty:
+    service_key: "${PAGERDUTY_SERVICE_KEY}"
+    escalation_policy: "standard"
+    
+  webhook:
+    url: "${ALERT_WEBHOOK_URL}"
+    method: "POST"
+    headers:
+      Authorization: "Bearer ${WEBHOOK_TOKEN}"
+
+# Alert Routing Rules
+routing_rules:
+  - severity: "critical"
+    channels: ["pagerduty", "slack.critical", "email.critical"]
+    
+  - severity: "warning"
+    channels: ["slack.default", "email.default"]
+    
+  - type: "security"
+    channels: ["slack.security", "email.critical", "pagerduty"]
+    
+  - time: "business_hours"
+    channels: ["slack.default"]
+    
+  - time: "after_hours"
+    severity: "critical"
+    channels: ["pagerduty", "email.critical"]
+
+# Maintenance Windows
+maintenance_windows:
+  - name: "Weekly Maintenance"
+    schedule: "0 2 * * 0" # Sunday 2 AM
+    duration: "2h"
+    suppress_alerts: ["performance", "uptime"]
+    
+  - name: "Database Backup"
+    schedule: "0 3 * * *" # Daily 3 AM
+    duration: "30m"
+    suppress_alerts: ["db.performance"]

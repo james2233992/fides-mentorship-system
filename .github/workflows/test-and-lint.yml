@@ -1,0 +1,157 @@
+name: Test and Lint
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [develop]
+
+jobs:
+  frontend-checks:
+    name: Frontend Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+          
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./frontend
+        
+      - name: Run ESLint
+        run: npm run lint
+        working-directory: ./frontend
+        
+      - name: TypeScript type check
+        run: npx tsc --noEmit
+        working-directory: ./frontend
+        
+      - name: Check formatting
+        run: npx prettier --check "**/*.{js,jsx,ts,tsx,json,css,scss,md}"
+        working-directory: ./frontend
+        
+      - name: Build check
+        run: npm run build
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_API_URL: "https://api.example.com"
+          NEXT_PUBLIC_WS_URL: "wss://api.example.com"
+
+  backend-checks:
+    name: Backend Checks
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: fides_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+          
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+          
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./backend
+        
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: ./backend
+        
+      - name: Run ESLint
+        run: npm run lint
+        working-directory: ./backend
+        
+      - name: Check formatting
+        run: npx prettier --check "**/*.{js,ts,json,md}"
+        working-directory: ./backend
+        
+      - name: Run tests
+        run: npm test
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://testuser:testpass@localhost:5432/fides_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret
+          
+      - name: Check Prisma schema
+        run: npx prisma validate
+        working-directory: ./backend
+        
+      - name: Build check
+        run: npm run build
+        working-directory: ./backend
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          
+      - name: Upload Trivy scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          
+      - name: Frontend dependency audit
+        run: npm audit --audit-level=high
+        working-directory: ./frontend
+        continue-on-error: true
+        
+      - name: Backend dependency audit
+        run: npm audit --audit-level=high
+        working-directory: ./backend
+        continue-on-error: true
+
+  check-secrets:
+    name: Check for Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Detect secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD

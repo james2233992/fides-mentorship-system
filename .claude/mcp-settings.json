@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "fides-deployment": {
+      "command": "node",
+      "args": [
+        "./mcp-servers/deployment-server/dist/index.js"
+      ],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}

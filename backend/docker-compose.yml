@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mentorship-postgres
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mentorship_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mentorship-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: mentorship-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - mentorship-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: mentorship-backend
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+      - '3001:3001'  # WebSocket port
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/mentorship_db?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      BULL_REDIS_HOST: redis
+      BULL_REDIS_PORT: 6379
+    volumes:
+      - ./src:/app/src
+      - ./prisma:/app/prisma
+      - ./.env:/app/.env
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - mentorship-network
+    command: npm run start:dev
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  mentorship-network:
+    driver: bridge

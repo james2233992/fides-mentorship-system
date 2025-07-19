@@ -1,0 +1,368 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// User model for authentication and profiles
+model User {
+  id              String          @id @default(uuid())
+  email           String          @unique
+  password        String
+  firstName       String          @map("first_name")
+  lastName        String          @map("last_name")
+  role            UserRole        @default(MENTEE)
+  phone           String?
+  profilePicture  String?         @map("profile_picture")
+  bio             String?
+  expertise       String?
+  linkedinUrl     String?         @map("linkedin_url")
+  isActive        Boolean         @default(true) @map("is_active")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  mentorSessions    MentorshipSession[] @relation("MentorSessions")
+  menteeSessions    MentorshipSession[] @relation("MenteeSessions")
+  sentNotifications Notification[]      @relation("NotificationSender")
+  notifications     UserNotification[]
+  availability      Availability[]
+  sentRequests      MentorshipRequest[] @relation("MenteeRequests")
+  receivedRequests  MentorshipRequest[] @relation("MentorRequests")
+  sentMessages      Message[]           @relation("SentMessages")
+  receivedMessages  Message[]           @relation("ReceivedMessages")
+  resources         Resource[]
+  goals             Goal[]              @relation("UserGoals")
+  mentorGoals       Goal[]              @relation("MentorGoals")
+
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+  @@index([createdAt])
+  @@map("users")
+}
+
+// Enum for user roles
+enum UserRole {
+  ADMIN
+  MENTOR
+  MENTEE
+}
+
+// Mentorship session model
+model MentorshipSession {
+  id            String              @id @default(uuid())
+  mentorId      String              @map("mentor_id")
+  menteeId      String              @map("mentee_id")
+  title         String
+  description   String?
+  scheduledAt   DateTime            @map("scheduled_at")
+  duration      Int                 // in minutes
+  status        SessionStatus       @default(SCHEDULED)
+  meetingLink   String?             @map("meeting_link")
+  notes         String?
+  completedAt   DateTime?           @map("completed_at")
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+
+  // Relations
+  mentor        User                @relation("MentorSessions", fields: [mentorId], references: [id])
+  mentee        User                @relation("MenteeSessions", fields: [menteeId], references: [id])
+  notifications Notification[]
+  feedback      SessionFeedback?
+  resources     Resource[]
+  goals         Goal[]
+
+  @@index([mentorId])
+  @@index([menteeId])
+  @@index([scheduledAt])
+  @@index([status])
+  @@index([createdAt])
+  @@map("mentorship_sessions")
+}
+
+// Enum for session status
+enum SessionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+// Availability model for mentors
+model Availability {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  dayOfWeek     Int       @map("day_of_week") // 0-6 (Sunday-Saturday)
+  startTime     String    @map("start_time") // HH:MM format
+  endTime       String    @map("end_time") // HH:MM format
+  isRecurring   Boolean   @default(true) @map("is_recurring")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("availability")
+}
+
+// Notification model
+model Notification {
+  id              String             @id @default(uuid())
+  type            NotificationType
+  title           String
+  message         String
+  senderId        String?            @map("sender_id")
+  sessionId       String?            @map("session_id")
+  metadata        Json?
+  status          String             @default("pending")
+  sentAt          DateTime?          @map("sent_at")
+  createdAt       DateTime           @default(now()) @map("created_at")
+
+  // Relations
+  sender          User?              @relation("NotificationSender", fields: [senderId], references: [id])
+  session         MentorshipSession? @relation(fields: [sessionId], references: [id])
+  userNotifications UserNotification[]
+
+  @@index([senderId])
+  @@index([sessionId])
+  @@map("notifications")
+}
+
+// Enum for notification types
+enum NotificationType {
+  SESSION_SCHEDULED
+  SESSION_REMINDER
+  SESSION_CANCELLED
+  SESSION_RESCHEDULED
+  SESSION_COMPLETED
+  SYSTEM_ANNOUNCEMENT
+  NEW_REQUEST
+  REQUEST_ACCEPTED
+  REQUEST_REJECTED
+  NEW_MESSAGE
+  FEEDBACK_RECEIVED
+  GOAL_DEADLINE
+}
+
+// Junction table for user notifications
+model UserNotification {
+  id               String       @id @default(uuid())
+  userId           String       @map("user_id")
+  notificationId   String       @map("notification_id")
+  isRead           Boolean      @default(false) @map("is_read")
+  readAt           DateTime?    @map("read_at")
+  createdAt        DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  user             User         @relation(fields: [userId], references: [id])
+  notification     Notification @relation(fields: [notificationId], references: [id])
+
+  @@unique([userId, notificationId])
+  @@index([userId])
+  @@index([notificationId])
+  @@map("user_notifications")
+}
+
+// Session feedback model
+model SessionFeedback {
+  id            String              @id @default(uuid())
+  sessionId     String              @unique @map("session_id")
+  rating        Int                 // 1-5 stars
+  feedback      String?             // written feedback
+  mentorNotes   String?             @map("mentor_notes") // private notes from mentor
+  createdAt     DateTime            @default(now()) @map("created_at")
+  updatedAt     DateTime            @updatedAt @map("updated_at")
+
+  // Relations
+  session       MentorshipSession   @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId])
+  @@map("session_feedbacks")
+}
+
+// Mentorship request model
+model MentorshipRequest {
+  id          String        @id @default(uuid())
+  menteeId    String        @map("mentee_id")
+  mentorId    String        @map("mentor_id")
+  message     String
+  status      RequestStatus @default(PENDING)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  mentee      User          @relation("MenteeRequests", fields: [menteeId], references: [id])
+  mentor      User          @relation("MentorRequests", fields: [mentorId], references: [id])
+
+  @@index([menteeId])
+  @@index([mentorId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("mentorship_requests")
+}
+
+// Message model
+model Message {
+  id                  String    @id @default(uuid())
+  senderId            String    @map("sender_id")
+  recipientId         String    @map("recipient_id")
+  content             String
+  isRead              Boolean   @default(false) @map("is_read")
+  deletedBySender     Boolean   @default(false) @map("deleted_by_sender")
+  deletedByRecipient  Boolean   @default(false) @map("deleted_by_recipient")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  sender              User      @relation("SentMessages", fields: [senderId], references: [id])
+  recipient           User      @relation("ReceivedMessages", fields: [recipientId], references: [id])
+
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([createdAt])
+  @@index([isRead])
+  @@map("messages")
+}
+
+// Enum for request status
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+// Resource model for shared materials
+model Resource {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  url         String?      // URL for external resources
+  filePath    String?      @map("file_path") // Path for uploaded files
+  type        ResourceType
+  authorId    String       @map("author_id")
+  sessionId   String?      @map("session_id") // Optional link to specific session
+  category    String       // Category like "programming", "career", etc.
+  tags        Json         @default("[]") // Array of tags stored as JSON
+  isPublic    Boolean      @default(false) @map("is_public") // Whether all users can see it
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  author      User         @relation(fields: [authorId], references: [id])
+  session     MentorshipSession? @relation(fields: [sessionId], references: [id])
+
+  @@index([authorId])
+  @@index([sessionId])
+  @@index([category])
+  @@index([isPublic])
+  @@map("resources")
+}
+
+// Enum for resource types
+enum ResourceType {
+  DOCUMENT
+  VIDEO
+  LINK
+  CODE_SNIPPET
+  TEMPLATE
+  OTHER
+}
+
+// Goal model for tracking mentee objectives
+model Goal {
+  id              String       @id @default(uuid())
+  title           String
+  description     String?
+  category        String       // Career, Technical, Personal, etc.
+  targetDate      DateTime?    @map("target_date")
+  status          GoalStatus   @default(IN_PROGRESS)
+  priority        Priority     @default(MEDIUM)
+  userId          String       @map("user_id")
+  mentorId        String?      @map("mentor_id")
+  sessionId       String?      @map("session_id") // Goal created during a specific session
+  completedAt     DateTime?    @map("completed_at")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  user            User         @relation("UserGoals", fields: [userId], references: [id])
+  mentor          User?        @relation("MentorGoals", fields: [mentorId], references: [id])
+  session         MentorshipSession? @relation(fields: [sessionId], references: [id])
+  progress        Progress[]
+  milestones      Milestone[]
+
+  @@index([userId])
+  @@index([mentorId])
+  @@index([status])
+  @@index([targetDate])
+  @@map("goals")
+}
+
+// Progress model for tracking goal progress
+model Progress {
+  id              String       @id @default(uuid())
+  goalId          String       @map("goal_id")
+  description     String
+  percentage      Int          @default(0) // 0-100
+  evidenceUrl     String?      @map("evidence_url") // Link to proof of progress
+  notes           String?
+  recordedBy      String       @map("recorded_by") // User ID who recorded this progress
+  createdAt       DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  goal            Goal         @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+  @@index([createdAt])
+  @@map("progress")
+}
+
+// Milestone model for breaking down goals
+model Milestone {
+  id              String       @id @default(uuid())
+  goalId          String       @map("goal_id")
+  title           String
+  description     String?
+  targetDate      DateTime?    @map("target_date")
+  completed       Boolean      @default(false)
+  completedAt     DateTime?    @map("completed_at")
+  order           Int          @default(0)
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  goal            Goal         @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+  @@index([order])
+  @@map("milestones")
+}
+
+// Enum for goal status
+enum GoalStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  ON_HOLD
+  CANCELLED
+}
+
+// Enum for priority
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
