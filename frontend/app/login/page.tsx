@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useAppDispatch } from '@/store/hooks'
 import { loginSuccess } from '@/store/slices/authSlice'
 import { useToast } from '@/components/hooks/use-toast'
+import { API_URL } from '@/config/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -25,7 +26,7 @@ export default function LoginPage() {
     setIsLoading(true)
     
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,7 +39,7 @@ export default function LoginPage() {
         localStorage.setItem('token', access_token)
         
         // Get user profile
-        const profileResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
+        const profileResponse = await fetch(`${API_URL}/auth/profile`, {
           headers: {
             'Authorization': `Bearer ${access_token}`,
           },

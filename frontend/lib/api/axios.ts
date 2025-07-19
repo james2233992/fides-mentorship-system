@@ -1,7 +1,6 @@
 import axios from 'axios'
 import Cookies from 'js-cookie'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+import { API_URL } from '@/config/api'
 
 const axiosInstance = axios.create({
   baseURL: API_URL,

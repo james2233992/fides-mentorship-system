@@ -1,7 +1,8 @@
 import { io, Socket } from 'socket.io-client'
 import Cookies from 'js-cookie'
+import { WS_URL } from '@/config/api'
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+const SOCKET_URL = WS_URL
 
 class SocketService {
   private socket: Socket | null = null
