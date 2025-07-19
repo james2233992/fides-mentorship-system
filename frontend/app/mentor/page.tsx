@@ -9,12 +9,13 @@ import { Calendar, Clock, Users, TrendingUp, Settings, BookOpen, MessageSquare }
 import { useAppSelector } from '@/store/hooks'
 import { useToast } from '@/components/hooks/use-toast'
 import { PendingFeedbackCard } from '@/components/feedback/pending-feedback-card'
+import { useMentorData } from '@/hooks/useMentorData'
 
 export default function MentorDashboard() {
   const router = useRouter()
   const { toast } = useToast()
   const { user } = useAppSelector((state) => state.auth)
-  const { sessions, requests } = useAppSelector((state) => state.mentorship)
+  const { sessions, requests, loading } = useMentorData()
 
   useEffect(() => {
     if (!user || (user.role !== 'mentor' && user.role !== 'admin')) {
@@ -22,10 +23,13 @@ export default function MentorDashboard() {
     }
   }, [user, router])
 
-  const upcomingSessions = sessions.filter(
-    (s) => new Date(s.scheduledAt) > new Date() && s.status === 'scheduled'
-  )
-  const pendingRequests = requests.filter((r) => r.status === 'pending')
+  // Ensure sessions and requests are arrays before filtering
+  const upcomingSessions = Array.isArray(sessions) 
+    ? sessions.filter((s) => new Date(s.scheduledAt) > new Date() && s.status === 'scheduled')
+    : []
+  const pendingRequests = Array.isArray(requests) 
+    ? requests.filter((r) => r.status === 'pending')
+    : []
 
   const handleAcceptRequest = (requestId: string) => {
     toast({
@@ -49,6 +53,16 @@ export default function MentorDashboard() {
   }
 
   if (!user) return null
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center">
+          <p className="text-muted-foreground">Loading mentor dashboard...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -96,7 +110,7 @@ export default function MentorDashboard() {
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{sessions.length}</div>
+              <div className="text-2xl font-bold">{Array.isArray(sessions) ? sessions.length : 0}</div>
               <p className="text-xs text-muted-foreground">
                 All-time sessions conducted
               </p>
