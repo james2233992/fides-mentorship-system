@@ -32,6 +32,14 @@ yarn-error.log*
 .env*.local
 .env.deployment
 !.env.example
+!.env.railway.example
+
+# IMPORTANT: Never commit these sensitive files
+RAILWAY_VARIABLES_COMPLETE.md
+*_COMPLETE.md
+*_KEYS.md
+*_SECRETS.md
+*_CREDENTIALS.md
 
 # Vercel
 .vercel
