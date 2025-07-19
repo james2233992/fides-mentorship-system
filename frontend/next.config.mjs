@@ -39,9 +39,13 @@ const nextConfig = {
     optimizeCss: true,
   },
   
-  // Environment variables
+  // Environment variables with fallbacks
   env: {
     NEXT_PUBLIC_APP_VERSION: process.env.npm_package_version || '1.0.0',
+    // Hardcoded fallbacks for when Vercel env vars fail
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'https://fides-mentorship-system-production.up.railway.app/api',
+    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL || 'wss://fides-mentorship-system-production.up.railway.app',
+    NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME || 'FIDES Mentorship',
   },
   
   // Headers for security

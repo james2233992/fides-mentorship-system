@@ -1,4 +1,4 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Injectable, NestMiddleware, Logger } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 
 /**
@@ -7,6 +7,7 @@ import { Request, Response, NextFunction } from 'express';
  */
 @Injectable()
 export class LegacyRoutesMiddleware implements NestMiddleware {
+  private readonly logger = new Logger(LegacyRoutesMiddleware.name);
   use(req: Request, res: Response, next: NextFunction) {
     // List of routes that should be redirected to /api
     const legacyRoutes = [
@@ -31,7 +32,7 @@ export class LegacyRoutesMiddleware implements NestMiddleware {
     
     if (matchedRoute) {
       // Log for debugging
-      console.log(`Legacy route detected: ${req.path} -> /api${req.path}`);
+      this.logger.warn(`Legacy route detected: ${req.method} ${req.path} -> /api${req.path}`);
       
       // Redirect to the correct path with /api prefix
       const newPath = `/api${req.path}`;
@@ -43,6 +44,7 @@ export class LegacyRoutesMiddleware implements NestMiddleware {
       
       // For other methods (POST, PUT, etc), we need to proxy the request
       req.url = newPath;
+      this.logger.log(`Rewritten URL to: ${req.url}`);
     }
     
     next();

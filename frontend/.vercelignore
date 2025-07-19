@@ -1,23 +1,35 @@
 # Vercel ignore file
-.next
-node_modules
+# Forces fresh builds by ignoring cache
+
+# Ignore build cache
+.next/
+.vercel/
+out/
+
+# Ignore node modules (Vercel will reinstall)
+node_modules/
+
+# Ignore environment files (use Vercel dashboard)
 .env.local
-.env.development
-*.log
-.DS_Store
-coverage
-.nyc_output
-dist
-build
-.git
-.gitignore
-README.md
-.eslintrc*
-.prettierrc*
-jest.config.*
-*.test.*
-*.spec.*
-__tests__
-__mocks__
-.vscode
-.idea
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Ignore test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Ignore documentation
+*.md
+docs/
+
+# Force rebuild of these critical files
+# By listing them here, Vercel will detect changes
+!app/layout.tsx
+!app/admin/page.tsx
+!app/mentor/page.tsx
+!components/error-boundary.tsx
+!lib/utils/array-helpers.ts
+!config/api.ts

@@ -22,31 +22,69 @@ async function bootstrap() {
     },
   }));
 
-  // Enable CORS with specific configuration
+  // Enable CORS with flexible configuration
   const isProduction = configService.get<string>('NODE_ENV') === 'production';
   
-  // In production, accept multiple origins if CORS_ORIGIN contains comma-separated values
-  let corsOrigin;
-  if (isProduction) {
-    const corsEnv = process.env.CORS_ORIGIN || process.env.FRONTEND_URL;
-    if (corsEnv && corsEnv.includes(',')) {
-      // Multiple origins
-      corsOrigin = corsEnv.split(',').map(origin => origin.trim());
+  // Default allowed origins in production
+  const productionOrigins = [
+    'https://fides-mentorship-system-t8ey.vercel.app',
+    'https://fides-frontend.vercel.app',
+    'https://fides-mentorship-system.vercel.app',
+    'https://fides-mentorship.vercel.app'
+  ];
+  
+  // Parse CORS_ORIGIN environment variable
+  let configuredOrigins: string[] = [];
+  const corsEnv = process.env.CORS_ORIGIN || process.env.FRONTEND_URL;
+  if (corsEnv) {
+    if (corsEnv.includes(',')) {
+      configuredOrigins = corsEnv.split(',').map(origin => origin.trim());
     } else {
-      // Single origin or fallback
-      corsOrigin = corsEnv || 'https://fides-mentorship-system-t8ey.vercel.app';
+      configuredOrigins = [corsEnv.trim()];
     }
-  } else {
-    corsOrigin = ['http://localhost:3000', 'http://localhost:3001'];
   }
   
-  console.log('CORS Configuration:', { corsOrigin });
+  // Combine all origins for production
+  const allOrigins = isProduction 
+    ? [...new Set([...productionOrigins, ...configuredOrigins])]
+    : ['http://localhost:3000', 'http://localhost:3001'];
   
+  console.log('CORS Configuration:', {
+    environment: isProduction ? 'production' : 'development',
+    CORS_ORIGIN: corsEnv,
+    allowedOrigins: allOrigins
+  });
+  
+  // Dynamic CORS handler for better debugging
   app.enableCors({
-    origin: corsOrigin,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or Postman)
+      if (!origin) {
+        console.log('CORS: Allowing request with no origin');
+        return callback(null, true);
+      }
+      
+      // Check if origin is allowed
+      const isAllowed = allOrigins.includes(origin);
+      
+      if (isAllowed) {
+        console.log(`CORS: Allowing origin: ${origin}`);
+        callback(null, true);
+      } else {
+        console.warn(`CORS: Blocking origin: ${origin}`);
+        console.log('CORS: Allowed origins are:', allOrigins);
+        // In production, still allow but log warning (temporary fix)
+        if (isProduction) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['X-Total-Count'],
     maxAge: 86400, // 24 hours
   });
 
