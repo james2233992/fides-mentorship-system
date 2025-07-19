@@ -6,6 +6,7 @@ import { useAppSelector } from '@/store/hooks'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useToast } from '@/hooks/use-toast'
+import { safeFilter, safeLength } from '@/lib/utils/array-helpers'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -28,7 +29,8 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       // Fetch users stats
-      const usersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://fides-mentorship-system-production.up.railway.app/api';
+      const usersResponse = await fetch(`${apiUrl}/users`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
@@ -37,16 +39,16 @@ export default function AdminDashboard() {
       if (usersResponse.ok) {
         const users = await usersResponse.json()
         const userStats = {
-          total: users.length,
-          admins: users.filter((u: any) => u.role === 'admin').length,
-          mentors: users.filter((u: any) => u.role === 'mentor').length,
-          mentees: users.filter((u: any) => u.role === 'mentee').length,
+          total: safeLength(users),
+          admins: safeFilter(users, (u: any) => u.role === 'admin').length,
+          mentors: safeFilter(users, (u: any) => u.role === 'mentor').length,
+          mentees: safeFilter(users, (u: any) => u.role === 'mentee').length,
         }
         setStats(prev => ({ ...prev, users: userStats }))
       }
 
       // Fetch sessions stats
-      const sessionsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/sessions`, {
+      const sessionsResponse = await fetch(`${apiUrl}/sessions`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
