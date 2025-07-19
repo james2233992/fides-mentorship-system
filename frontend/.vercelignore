@@ -1,0 +1,23 @@
+# Vercel ignore file
+.next
+node_modules
+.env.local
+.env.development
+*.log
+.DS_Store
+coverage
+.nyc_output
+dist
+build
+.git
+.gitignore
+README.md
+.eslintrc*
+.prettierrc*
+jest.config.*
+*.test.*
+*.spec.*
+__tests__
+__mocks__
+.vscode
+.idea
